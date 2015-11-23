@@ -1,0 +1,125 @@
+unit game;
+
+interface
+
+uses
+  System.Generics.Collections, Winapi.Windows, Winapi.Messages, System.SysUtils,
+  System.Variants,
+  System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
+
+type
+  TCharArray = string;
+
+const
+  MAX_MISTAKES = 12;
+
+type
+  TForm10 = class(TForm)
+    Memo1: TMemo;
+    Edit1: TEdit;
+    Button1: TButton;
+    Label1: TLabel;
+    procedure FormCreate(Sender: TObject);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure Button1Click(Sender: TObject);
+  private
+    function Win: Boolean;
+    procedure HidLet(hiddenLetter: Char);
+    function IsGameOver(myletter: Char): Boolean;
+    procedure UpdateHiddenWord;
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form10: TForm10;
+  FWordToGuess: string;
+  FHiddenWord: TCharArray;
+  FMistakesCount: Integer;
+  FToGuess: string;
+
+implementation
+
+{$R *.dfm}
+{ TForm10 }
+
+procedure TForm10.Button1Click(Sender: TObject);
+begin
+  Memo1.Clear;
+  Label1.CleanupInstance;
+  Edit1.Clear;
+end;
+
+procedure TForm10.FormCreate(Sender: TObject);
+begin
+  FToGuess := 'Common';
+  FWordToGuess := FToGuess.ToLower;
+  FMistakesCount := 0;
+
+  HidLet('_');
+end;
+
+procedure TForm10.FormKeyPress(Sender: TObject; var Key: Char);
+var
+FKay:char;
+begin
+
+  if Key in ['a' .. 'z'] + ['A' .. 'Z'] then
+  begin
+    if not IsGameOver(Key) then
+      UpdateHiddenWord
+    else if Win then
+    begin
+      UpdateHiddenWord;
+      ShowMessage('Win');
+    end
+    else
+      ShowMessage('Game Over');
+  end;
+end;
+
+procedure TForm10.HidLet(hiddenLetter: Char);
+var
+  I: Integer;
+begin
+  FHiddenWord := FWordToGuess;
+  for I := 1 to Length(FHiddenWord) do
+    FHiddenWord[I] := hiddenLetter;
+
+  // FillChar(FHiddenWord, SizeOf(FHiddenWord), hiddenLetter);
+end;
+
+function TForm10.IsGameOver(myletter: Char): Boolean;
+var
+  I, P: Integer;
+begin
+  P := Pos(myletter, FWordToGuess);
+  if P > 0 then
+  begin
+    for I := P to Length(FWordToGuess) do
+      if FWordToGuess[I] = myletter then
+        FHiddenWord[I] := myletter;
+  end
+  else
+  begin
+    FMistakesCount := FMistakesCount + 1;
+    Memo1.Clear;
+    Memo1.Lines[0] := Memo1.Lines[0] + 'Your Mistakes:' +
+      (intToStr(FMistakesCount));
+  end;
+  result := Win or (FMistakesCount > MAX_MISTAKES);
+end;
+
+procedure TForm10.UpdateHiddenWord;
+begin
+  Label1.Caption := PChar(FHiddenWord);
+end;
+
+function TForm10.Win: Boolean;
+begin
+  result := FHiddenWord = FWordToGuess;
+end;
+
+end.
